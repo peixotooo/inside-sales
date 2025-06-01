@@ -63,6 +63,47 @@
             height: 320px;
             max-height: 320px;
         }
+        .form-step { display: none; }
+        .form-step.active { display: block; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .progress-bar-bg {
+            background-color: #e5e7eb; /* gray-200 */
+            border-radius: 0.25rem; /* rounded-sm */
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background-color: #334155; /* accent-color */
+            height: 0.75rem; /* h-3 */
+            border-radius: 0.25rem; /* rounded-sm */
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -76,7 +117,7 @@
                 <a href="#perfil" class="nav-link">Seu Perfil</a>
                 <a href="#sobre" class="nav-link">Sobre Nós</a>
             </div>
-            <a href="#candidatar" class="hidden md:inline-block px-5 py-2 accent-color text-white rounded-lg font-semibold shadow-md hover:opacity-90 transition-opacity">Candidatar-se</a>
+            <button id="open-form-button-desktop" class="hidden md:inline-block px-5 py-2 accent-color text-white rounded-lg font-semibold shadow-md hover:opacity-90 transition-opacity">Candidatar-se</button>
             <button id="mobile-menu-button" class="md:hidden p-2 rounded-md accent-text">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             </button>
@@ -87,7 +128,7 @@
             <a href="#perfil" class="block text-center py-2 px-4 text-sm hover:bg-gray-100">Seu Perfil</a>
             <a href="#sobre" class="block text-center py-2 px-4 text-sm hover:bg-gray-100">Sobre Nós</a>
             <div class="p-4">
-                <a href="#candidatar" class="block w-full text-center px-5 py-2 accent-color text-white rounded-lg font-semibold shadow-md hover:opacity-90 transition-opacity">Candidatar-se</a>
+                <button id="open-form-button-mobile" class="block w-full text-center px-5 py-2 accent-color text-white rounded-lg font-semibold shadow-md hover:opacity-90 transition-opacity">Candidatar-se</button>
             </div>
         </div>
     </header>
@@ -208,8 +249,7 @@
                         <p class="text-slate-600 font-semibold mb-2">Além de uma carreira com grande potencial, oferecemos:</p>
                         <ul class="space-y-2 text-sm text-slate-600 list-inside list-disc">
                             <li>Vale-Refeição ou Vale-Alimentação</li>
-                            <li>Vale-Transporte (conforme modalidade)</li>
-                            <li>Plano de Saúde e Odontológico</li>
+                            <li>Vale-Transporte</li>
                             <li>Oportunidades reais de desenvolvimento</li>
                             <li>Descontos exclusivos em produtos Bulking</li>
                         </ul>
@@ -226,14 +266,127 @@
              </div>
         </section>
 
-        <section id="candidatar" class="text-center scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-bold mb-4 accent-text">Dê o Próximo Passo!</h2>
-            <p class="text-slate-500 max-w-2xl mx-auto mb-8">Acredita que tem o perfil ideal para esta oportunidade e está pronto(a) para fazer a diferença na Bulking? Queremos conhecê-lo(a)!</p>
-            <a href="mailto:vagas@bulking.com.br?subject=Candidatura%20Consultor(a)%20de%20Vendas%20Internas" class="inline-block px-10 py-4 accent-color text-white text-lg rounded-lg font-semibold shadow-lg hover:opacity-90 transition-opacity">
-                Enviar Currículo
-            </a>
+        <section id="candidatar-se-trigger" class="text-center scroll-mt-20">
+             <h2 class="text-2xl md:text-3xl font-bold mb-4 accent-text">Dê o Próximo Passo!</h2>
+             <p class="text-slate-500 max-w-2xl mx-auto mb-8">Acredita que tem o perfil ideal para esta oportunidade e está pronto(a) para fazer a diferença na Bulking? Queremos conhecê-lo(a)!</p>
+             <button id="open-form-button-main" class="inline-block px-10 py-4 accent-color text-white text-lg rounded-lg font-semibold shadow-lg hover:opacity-90 transition-opacity">
+                 Iniciar Candidatura
+             </button>
         </section>
     </main>
+
+    <div id="application-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold accent-text">Candidate-se: Consultor(a) de Vendas</h2>
+                <button id="close-modal-button" class="text-2xl text-slate-500 hover:text-slate-700">&times;</button>
+            </div>
+
+            <div class="mb-4">
+                <div class="progress-bar-bg">
+                    <div id="progress-bar" class="progress-bar-fill" style="width: 25%;"></div>
+                </div>
+            </div>
+
+            <form id="application-form">
+                <div id="step-1" class="form-step active">
+                    <h3 class="text-lg font-semibold mb-4">Etapa 1 de 4: Suas Informações</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-slate-700">Nome Completo</label>
+                            <input type="text" name="fullName" id="fullName" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
+                            <input type="email" name="email" id="email" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-slate-700">Telefone/WhatsApp</label>
+                            <input type="tel" name="phone" id="phone" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="linkedin" class="block text-sm font-medium text-slate-700">Link do seu Perfil no LinkedIn (Opcional)</label>
+                            <input type="url" name="linkedin" id="linkedin" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step-2" class="form-step">
+                    <h3 class="text-lg font-semibold mb-4">Etapa 2 de 4: Sua Experiência com Vendas</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Você possui experiência prévia em vendas digitais ou atendimento comercial?</label>
+                            <div class="mt-2 space-x-4">
+                                <label class="inline-flex items-center"><input type="radio" name="hasSalesExperience" value="sim" class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"> <span class="ml-2">Sim</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="hasSalesExperience" value="nao" checked class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"> <span class="ml-2">Não</span></label>
+                            </div>
+                        </div>
+                        <div id="yearsExperienceContainer" class="hidden">
+                            <label for="yearsExperience" class="block text-sm font-medium text-slate-700">Quantos anos de experiência?</label>
+                            <input type="number" name="yearsExperience" id="yearsExperience" min="0" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="funnelMetrics" class="block text-sm font-medium text-slate-700">Descreva brevemente sua familiaridade com métricas de funil de vendas (ex: taxa de conversão, ticket médio).</label>
+                            <textarea name="funnelMetrics" id="funnelMetrics" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Você possui conhecimento em plataformas de CRM?</label>
+                             <div class="mt-2 space-x-4">
+                                <label class="inline-flex items-center"><input type="radio" name="hasCrmExperience" value="sim" class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"> <span class="ml-2">Sim</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="hasCrmExperience" value="nao" checked class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"> <span class="ml-2">Não</span></label>
+                            </div>
+                        </div>
+                        <div id="crmPlatformsContainer" class="hidden">
+                            <label for="crmPlatforms" class="block text-sm font-medium text-slate-700">Quais plataformas de CRM você já utilizou? (Opcional)</label>
+                            <input type="text" name="crmPlatforms" id="crmPlatforms" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step-3" class="form-step">
+                    <h3 class="text-lg font-semibold mb-4">Etapa 3 de 4: Seu Perfil e Motivações</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="attractionToRole" class="block text-sm font-medium text-slate-700">O que mais te atrai na oportunidade de ser Consultor(a) de Vendas na Bulking?</label>
+                            <textarea name="attractionToRole" id="attractionToRole" rows="3" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label for="organizationSkills" class="block text-sm font-medium text-slate-700">Como você descreveria sua capacidade de organização para lidar com múltiplos atendimentos simultaneamente?</label>
+                            <textarea name="organizationSkills" id="organizationSkills" rows="3" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label for="salaryExpectation" class="block text-sm font-medium text-slate-700">Qual sua pretensão salarial (OTE - Ganho Total Esperado)?</label>
+                            <input type="number" name="salaryExpectation" id="salaryExpectation" placeholder="Ex: 4500" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step-4" class="form-step">
+                    <h3 class="text-lg font-semibold mb-4">Etapa 4 de 4: Revisão e Envio</h3>
+                    <div id="summary-content" class="space-y-2 text-sm bg-gray-50 p-4 rounded-md mb-4">
+                        <p>Por favor, revise suas informações antes de enviar.</p>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">Ao clicar em "Enviar Candidatura", seus dados serão processados. Para integração com Google Sheets, uma configuração de backend (Google Apps Script) é necessária.</p>
+                </div>
+
+                <div id="form-thank-you" class="form-step text-center py-8">
+                    <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="text-xl font-semibold mb-2">Obrigado!</h3>
+                    <p class="text-slate-600">Sua candidatura foi enviada com sucesso.</p>
+                    <p class="text-sm text-slate-500 mt-1">Entraremos em contato em breve se o seu perfil for compatível.</p>
+                    <button type="button" id="close-modal-thank-you" class="mt-6 px-6 py-2 accent-color text-white rounded-md hover:opacity-90">Fechar</button>
+                </div>
+
+
+                <div id="form-navigation" class="mt-8 flex justify-between">
+                    <button type="button" id="prev-step" class="px-6 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50">Anterior</button>
+                    <button type="button" id="next-step" class="px-6 py-2 accent-color text-white rounded-md text-sm font-medium hover:opacity-90">Próximo</button>
+                    <button type="submit" id="submit-form" class="hidden px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">Enviar Candidatura</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -275,119 +428,333 @@
                 const match = commissionMultipliers.slice().reverse().find(m => performance >= m.performance);
                 return match ? match.multiplier : performance / 100;
             }
+            
+            const ctx = document.getElementById('earningsChart');
+            let earningsChart; 
+            if (ctx) {
+                earningsChart = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Fixo', 'Variável'],
+                        datasets: [{
+                            data: [2450, 1050],
+                            backgroundColor: ['#94a3b8', '#334155'],
+                            borderColor: '#F8F7F4',
+                            borderWidth: 4,
+                            hoverBorderWidth: 4,
+                            hoverBorderColor: '#e2e8f0'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#475569',
+                                    font: { size: 14, family: 'Inter, sans-serif' }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed !== null) { label += formatCurrency(context.parsed); }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateChart(fixed, variable) {
+                if (earningsChart) {
+                    earningsChart.data.datasets[0].data[0] = fixed;
+                    earningsChart.data.datasets[0].data[1] = variable;
+                    earningsChart.update();
+                }
+            }
 
             function updateCalculator() {
                 const levelInfo = levelData.find(l => l.level === currentLevel);
+                if (!levelInfo) return; 
                 performancePercentage = parseInt(performanceSlider.value);
                 
-                performanceValue.textContent = `${performancePercentage}%`;
+                if(performanceValue) performanceValue.textContent = `${performancePercentage}%`;
 
                 const multiplier = getMultiplier(performancePercentage);
                 const calculatedVariable = levelInfo.variable * multiplier;
                 const total = levelInfo.fixed + calculatedVariable;
 
-                fixedSalaryEl.textContent = formatCurrency(levelInfo.fixed);
-                variableCommissionEl.textContent = formatCurrency(calculatedVariable);
-                totalEarningsEl.textContent = formatCurrency(total);
+                if(fixedSalaryEl) fixedSalaryEl.textContent = formatCurrency(levelInfo.fixed);
+                if(variableCommissionEl) variableCommissionEl.textContent = formatCurrency(calculatedVariable);
+                if(totalEarningsEl) totalEarningsEl.textContent = formatCurrency(total);
 
                 updateChart(levelInfo.fixed, calculatedVariable);
             }
 
-            levelData.forEach(levelInfo => {
-                const button = document.createElement('button');
-                button.textContent = `Nível ${levelInfo.level}`;
-                button.dataset.level = levelInfo.level;
-                button.className = 'level-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200';
-                if (levelInfo.level === currentLevel) {
-                    button.classList.add('accent-color', 'text-white');
-                } else {
-                    button.classList.add('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
-                }
-                button.addEventListener('click', () => {
-                    currentLevel = levelInfo.level;
-                    document.querySelectorAll('.level-btn').forEach(btn => {
-                        btn.classList.remove('accent-color', 'text-white');
-                        btn.classList.add('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
-                    });
-                    button.classList.add('accent-color', 'text-white');
-                    button.classList.remove('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
-                    updateCalculator();
-                });
-                levelButtonsContainer.appendChild(button);
-            });
-
-            performanceSlider.addEventListener('input', updateCalculator);
-
-            const ctx = document.getElementById('earningsChart').getContext('2d');
-            const earningsChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Fixo', 'Variável'],
-                    datasets: [{
-                        data: [2450, 1050],
-                        backgroundColor: ['#94a3b8', '#334155'],
-                        borderColor: '#F8F7F4',
-                        borderWidth: 4,
-                        hoverBorderWidth: 4,
-                        hoverBorderColor: '#e2e8f0'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#475569',
-                                font: {
-                                    size: 14,
-                                    family: 'Inter, sans-serif'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += formatCurrency(context.parsed);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
+            if (levelButtonsContainer) {
+                levelData.forEach(levelInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = `Nível ${levelInfo.level}`;
+                    button.dataset.level = levelInfo.level;
+                    button.className = 'level-btn px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200';
+                    if (levelInfo.level === currentLevel) {
+                        button.classList.add('accent-color', 'text-white');
+                    } else {
+                        button.classList.add('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
                     }
-                }
-            });
-
-            function updateChart(fixed, variable) {
-                earningsChart.data.datasets[0].data[0] = fixed;
-                earningsChart.data.datasets[0].data[1] = variable;
-                earningsChart.update();
+                    button.addEventListener('click', () => {
+                        currentLevel = levelInfo.level;
+                        document.querySelectorAll('.level-btn').forEach(btn => {
+                            btn.classList.remove('accent-color', 'text-white');
+                            btn.classList.add('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
+                        });
+                        button.classList.add('accent-color', 'text-white');
+                        button.classList.remove('bg-gray-200', 'text-slate-700', 'hover:bg-gray-300');
+                        updateCalculator();
+                    });
+                    levelButtonsContainer.appendChild(button);
+                });
+                if(performanceSlider) performanceSlider.addEventListener('input', updateCalculator);
+                updateCalculator(); 
             }
             
-            updateCalculator();
-
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
+            if(mobileMenuButton) mobileMenuButton.addEventListener('click', () => {
+                if(mobileMenu) mobileMenu.classList.toggle('hidden');
             });
             
-            document.querySelectorAll('#mobile-menu a, #header nav a').forEach(anchor => {
+            document.querySelectorAll('#mobile-menu a, header nav a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     if (this.getAttribute('href').startsWith('#')) {
-                        if (mobileMenu.classList.contains('hidden') === false) {
+                         e.preventDefault();
+                         const targetElement = document.querySelector(this.getAttribute('href'));
+                         if (targetElement) {
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                         }
+                        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
                            mobileMenu.classList.add('hidden');
                         }
                     }
                 });
             });
+
+            const modal = document.getElementById('application-modal');
+            const openFormButtons = [
+                document.getElementById('open-form-button-desktop'),
+                document.getElementById('open-form-button-mobile'),
+                document.getElementById('open-form-button-main')
+            ];
+            const closeModalButton = document.getElementById('close-modal-button');
+            const closeModalThankYouButton = document.getElementById('close-modal-thank-you');
+
+            openFormButtons.forEach(btn => {
+                if(btn) btn.addEventListener('click', () => {
+                    if(modal) modal.classList.add('open');
+                });
+            });
+            
+            if(closeModalButton) closeModalButton.addEventListener('click', () => {
+                if(modal) modal.classList.remove('open');
+            });
+            if(closeModalThankYouButton) closeModalThankYouButton.addEventListener('click', () => {
+                if(modal) modal.classList.remove('open');
+                currentFormStep = 1;
+                updateFormStep();
+                if(applicationForm) applicationForm.reset();
+                if(thankYouStep) thankYouStep.classList.remove('active');
+                if(formNavigation) formNavigation.style.display = 'flex';
+            });
+            
+            if(modal) {
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        modal.classList.remove('open');
+                    }
+                });
+            }
+
+            const applicationForm = document.getElementById('application-form');
+            const steps = applicationForm ? Array.from(applicationForm.querySelectorAll('.form-step:not(#form-thank-you)')) : [];
+            const thankYouStep = document.getElementById('form-thank-you');
+            const nextButton = document.getElementById('next-step');
+            const prevButton = document.getElementById('prev-step');
+            const submitButton = document.getElementById('submit-form');
+            const progressBar = document.getElementById('progress-bar');
+            const formNavigation = document.getElementById('form-navigation');
+            let currentFormStep = 1;
+            const totalFormSteps = steps.length;
+
+            function updateFormStep() {
+                if (!steps.length || !progressBar || !prevButton || !nextButton || !submitButton) return;
+                steps.forEach((step, index) => {
+                    step.classList.toggle('active', index + 1 === currentFormStep);
+                });
+                progressBar.style.width = `${(currentFormStep / totalFormSteps) * 100}%`;
+                prevButton.style.display = currentFormStep === 1 ? 'none' : 'inline-block';
+                nextButton.style.display = currentFormStep === totalFormSteps ? 'none' : 'inline-block';
+                submitButton.style.display = currentFormStep === totalFormSteps ? 'inline-block' : 'none';
+                
+                if (currentFormStep === totalFormSteps) {
+                    populateSummary();
+                }
+            }
+            
+            function validateStep(stepNumber) {
+                if (!steps[stepNumber - 1]) return false;
+                const currentStepFields = steps[stepNumber - 1].querySelectorAll('[required]');
+                let isValid = true;
+                currentStepFields.forEach(field => {
+                    if (!field.value.trim() || (field.type === 'email' && !field.checkValidity())) {
+                        isValid = false;
+                        field.classList.add('border-red-500');
+                    } else {
+                        field.classList.remove('border-red-500');
+                    }
+                });
+                return isValid;
+            }
+
+            if(nextButton) nextButton.addEventListener('click', () => {
+                if (validateStep(currentFormStep) && currentFormStep < totalFormSteps) {
+                    currentFormStep++;
+                    updateFormStep();
+                }
+            });
+
+            if(prevButton) prevButton.addEventListener('click', () => {
+                if (currentFormStep > 1) {
+                    currentFormStep--;
+                    updateFormStep();
+                }
+            });
+            
+            const salesExperienceRadios = document.querySelectorAll('input[name="hasSalesExperience"]');
+            const yearsExperienceContainer = document.getElementById('yearsExperienceContainer');
+            const yearsExperienceInput = document.getElementById('yearsExperience');
+
+            if(salesExperienceRadios) salesExperienceRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (!yearsExperienceContainer || !yearsExperienceInput) return;
+                    if (this.value === 'sim') {
+                        yearsExperienceContainer.classList.remove('hidden');
+                        yearsExperienceInput.setAttribute('required', 'required');
+                    } else {
+                        yearsExperienceContainer.classList.add('hidden');
+                        yearsExperienceInput.removeAttribute('required');
+                        yearsExperienceInput.value = ''; 
+                    }
+                });
+            });
+
+            const crmExperienceRadios = document.querySelectorAll('input[name="hasCrmExperience"]');
+            const crmPlatformsContainer = document.getElementById('crmPlatformsContainer');
+            if(crmExperienceRadios) crmExperienceRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                   if(crmPlatformsContainer) crmPlatformsContainer.classList.toggle('hidden', this.value === 'nao');
+                });
+            });
+
+            function populateSummary() {
+                if (!applicationForm) return;
+                const formData = new FormData(applicationForm);
+                const summaryContent = document.getElementById('summary-content');
+                if (!summaryContent) return;
+                summaryContent.innerHTML = '<h4 class="font-semibold mb-2">Revise suas informações:</h4>';
+                const dataToDisplay = {
+                    'Nome Completo': formData.get('fullName'),
+                    'Email': formData.get('email'),
+                    'Telefone/WhatsApp': formData.get('phone'),
+                    'LinkedIn': formData.get('linkedin') || 'Não informado',
+                    'Possui Experiência em Vendas?': formData.get('hasSalesExperience'),
+                    'Anos de Experiência': formData.get('hasSalesExperience') === 'sim' ? (formData.get('yearsExperience') || 'Não informado') : 'N/A',
+                    'Familiaridade com Métricas de Funil': formData.get('funnelMetrics') || 'Não informado',
+                    'Possui Experiência com CRM?': formData.get('hasCrmExperience'),
+                    'Plataformas CRM Utilizadas': formData.get('hasCrmExperience') === 'sim' ? (formData.get('crmPlatforms') || 'Não informado') : 'N/A',
+                    'Atração pela Vaga': formData.get('attractionToRole'),
+                    'Habilidades de Organização': formData.get('organizationSkills'),
+                    'Pretensão Salarial (OTE)': formatCurrency(parseFloat(formData.get('salaryExpectation') || 0))
+                };
+
+                for (const [key, value] of Object.entries(dataToDisplay)) {
+                    const p = document.createElement('p');
+                    p.innerHTML = `<strong class="text-slate-600">${key}:</strong> ${value}`;
+                    summaryContent.appendChild(p);
+                }
+            }
+            
+// (Dentro da sua tag <script> no final do ficheiro HTML)
+
+if(applicationForm) applicationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!validateStep(currentFormStep) || !submitButton || !thankYouStep || !formNavigation) return;
+
+    const formData = new FormData(applicationForm);
+    const data = Object.fromEntries(formData.entries());
+    data.timestamp = new Date().toISOString(); // Adiciona timestamp do cliente
+
+    console.log("Dados da Candidatura para Envio:", data);
+    
+    submitButton.textContent = 'Enviando...';
+    submitButton.disabled = true;
+
+    // --- SUBSTITUA A LINHA ABAIXO PELO URL REAL DO SEU APPS SCRIPT ---
+    // Este URL é obtido após implantar o seu Google Apps Script como uma aplicação web.
+    const SCRIPT_URL_DO_SEU_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwleazKtH8WfYeCJjWbXwr9TGQp3ePXqIYHJD815kF4sFiM455KN9eQa6-6oGbk_oS5/exec"; // UTILIZE AQUI O SEU URL REAL
+    // --- FIM DA SECÇÃO PARA SUBSTITUIR ---
+
+    if (SCRIPT_URL_DO_SEU_APPS_SCRIPT === "COLOQUE_AQUI_O_URL_COMPLETO_DO_SEU_APPS_SCRIPT_IMPLANTADO" || SCRIPT_URL_DO_SEU_APPS_SCRIPT === "" || SCRIPT_URL_DO_SEU_APPS_SCRIPT.includes("URL_DO_SEU_APPS_SCRIPT_AQUI") ) {
+        alert("ERRO DE CONFIGURAÇÃO: O URL do Google Apps Script não foi definido corretamente no código HTML (JavaScript). Por favor, adicione o URL correto para que o formulário possa enviar os dados.");
+        submitButton.textContent = 'Enviar Candidatura';
+        submitButton.disabled = false;
+        return; 
+    }
+
+    try {
+        const response = await fetch(SCRIPT_URL_DO_SEU_APPS_SCRIPT, {
+            method: 'POST',
+            mode: 'cors', 
+            cache: 'no-cache',
+            body: new URLSearchParams(data) 
+        });
+
+        if (!response.ok) {
+            // Tenta ler o corpo da resposta mesmo que não seja OK, para mais detalhes do erro.
+            const errorBody = await response.text(); // ou response.json() se souber que o erro é JSON
+            throw new Error(`Erro de Rede: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
+        }
+        
+        const result = await response.json(); 
+
+        if (result.status === 'success_teste' || result.status === 'success') { // Adicionado para compatibilidade com script de teste e final
+            steps.forEach(step => step.classList.remove('active'));
+            if(thankYouStep) thankYouStep.classList.add('active');
+            if(formNavigation) formNavigation.style.display = 'none'; 
+            console.log("Resposta do Apps Script (Sucesso):", result);
+        } else {
+            console.error("Erro reportado pelo Apps Script:", result.message, result.params || result.received_params);
+            alert(`Houve um erro ao processar sua candidatura no servidor: ${result.message || 'Erro desconhecido do servidor.'}. Por favor, tente novamente.`);
+        }
+    } catch (error) {
+        console.error("Erro durante a chamada fetch para o Apps Script:", error);
+        alert(`Houve um erro de comunicação ao enviar sua candidatura. Verifique sua conexão e tente novamente. Detalhe: ${error.message}`);
+    } finally {
+        submitButton.textContent = 'Enviar Candidatura';
+        submitButton.disabled = false;
+    }
+});            if (steps.length > 0) { 
+                 updateFormStep();
+            }
+
         });
     </script>
 </body>

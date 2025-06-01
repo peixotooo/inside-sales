@@ -140,6 +140,17 @@
             <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">Buscamos um(a) Consultor(a) de Vendas Internas (Inside Sales) para transformar o nosso sucesso em resultados e impulsionar a sua carreira.</p>
         </section>
 
+        import { TextAnimate } from "@/components/magicui/text-animate";
+
+export function TextAnimateDemo() {
+  return (
+    <TextAnimate animation="blurInUp" by="character" once>
+      Blur in by character
+    </TextAnimate>
+  );
+}
+
+
         <section id="vaga" class="mb-16 md:mb-24 scroll-mt-20">
             <h2 class="text-2xl md:text-3xl font-bold text-center mb-2 accent-text">A Oportunidade</h2>
             <p class="text-center text-slate-500 mb-12 max-w-2xl mx-auto">Como parte da nossa equipe, a sua missão será gerar receita recorrente, transformando leads qualificados em vendas através de um relacionamento consultivo e orientado a métricas de alta performance.</p>
